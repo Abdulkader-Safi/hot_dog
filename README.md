@@ -1,51 +1,99 @@
-# Development
+# HotDog 🌭
 
-Your new bare-bones project includes minimal organization with a single `main.rs` file and a few assets.
+A fun Dioxus application for browsing random dog images from the Dog CEO API. Built with Rust and styled with Tailwind CSS.
 
-```
-project/
-├─ assets/ # Any assets that are used by the app should be placed here
+## Project Structure
+
+```text
+hot_dog/
+├─ assets/             # Static assets (CSS, images, etc.)
 ├─ src/
-│  ├─ main.rs # main.rs is the entry point to your application and currently contains all components for the app
-├─ Cargo.toml # The Cargo.toml file defines the dependencies and feature flags for your project
+│  ├─ main.rs          # Application entry point
+│  ├─ components/      # UI components
+│  │  ├─ mod.rs        # Component module exports
+│  │  ├─ app.rs        # Main App component
+│  │  ├─ title.rs      # Title component and state
+│  │  └─ dog_view.rs   # Dog image viewer component
+├─ Cargo.toml          # Project dependencies and configuration
+├─ Dioxus.toml         # Dioxus configuration
+└─ tailwind.css        # Tailwind CSS configuration
 ```
+
+## Features
+
+- 🐕 Fetches random dog images from [Dog CEO API](https://dog.ceo/api/breeds/image/random)
+- 🎨 Styled with Tailwind CSS
+- ⚡ Built with Dioxus for fast, reactive UI
+- 📦 Modular component architecture
+
+## Development
+
+### Prerequisites
+
+- Rust (latest stable version)
+- Dioxus CLI (`cargo install dioxus-cli`)
 
 ### Automatic Tailwind (Dioxus 0.7+)
 
-As of Dioxus 0.7, there no longer is a need to manually install tailwind. Simply `dx serve` and you're good to go!
+As of Dioxus 0.7, there's no need to manually install Tailwind. Simply run `dx serve` and you're good to go!
 
-Automatic tailwind is supported by checking for a file called `tailwind.css` in your app's manifest directory (next to Cargo.toml). To customize the file, use the dioxus.toml:
+Automatic Tailwind is enabled by the `tailwind.css` file in your project root. To customize Tailwind configuration, edit `Dioxus.toml`:
 
 ```toml
 [application]
-tailwind_input = "my.css"
-tailwind_output = "assets/out.css" # also customize the location of the out file!
+tailwind_input = "tailwind.css"
+tailwind_output = "assets/out.css"
 ```
 
-### Tailwind Manual Install
+### Manual Tailwind Installation (Optional)
 
-To use tailwind plugins or manually customize tailwind, you can can install the Tailwind CLI and use it directly.
-
-### Tailwind
+For advanced Tailwind features like plugins or custom configurations:
 
 1. Install npm: <https://docs.npmjs.com/downloading-and-installing-node-js-and-npm>
-2. Install the Tailwind CSS CLI: <https://tailwindcss.com/docs/installation/tailwind-cli>
-3. Run the following command in the root of the project to start the Tailwind CSS compiler:
+2. Install Tailwind CSS CLI: <https://tailwindcss.com/docs/installation/tailwind-cli>
+3. Run the Tailwind compiler:
 
 ```bash
-npx @tailwindcss/cli -i ./input.css -o ./assets/tailwind.css --watch
+npx @tailwindcss/cli -i ./tailwind.css -o ./assets/tailwind.css --watch
 ```
 
-### Serving Your App
+### Running the App
 
-Run the following command in the root of your project to start developing with the default platform:
+Start the development server with the default platform:
 
 ```bash
 dx serve
 ```
 
-To run for a different platform, use the `--platform platform` flag. E.g.
+To run on a specific platform:
 
 ```bash
-dx serve --platform desktop
+dx serve --platform desktop  # Desktop app
+dx serve --platform web       # Web app
+```
+
+## Component Overview
+
+### App (`components/app.rs`)
+
+The main application component that sets up the context provider and renders the Title and DogView components.
+
+### Title (`components/title.rs`)
+
+Displays the application title with emoji. Uses context to access the title state.
+
+### DogView (`components/dog_view.rs`)
+
+The main feature component that:
+
+- Displays a dog image
+- Provides "skip" and "save!" buttons
+- Fetches new random dog images from the Dog CEO API
+
+## Building for Production
+
+Build optimized binaries for your target platform:
+
+```bash
+dx build --release
 ```
