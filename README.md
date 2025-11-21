@@ -17,7 +17,8 @@ hot_dog/
 │  ├─ apis/            # Server functions and API layer
 │  │  ├─ mod.rs        # API module exports
 │  │  ├─ save_dog.rs   # Server function to persist dog images
-│  │  └─ server_utils.rs # Server-only utilities and helpers
+│  │  ├─ get_saved_dogs.rs # Server function to retrieve saved images
+│  │  └─ server_utils.rs # Server-only utilities and SQLite database
 ├─ Cargo.toml          # Project dependencies and configuration
 ├─ Dioxus.toml         # Dioxus configuration
 └─ tailwind.css        # Tailwind CSS configuration
@@ -26,7 +27,7 @@ hot_dog/
 ## Features
 
 - 🐕 Fetches random dog images from [Dog CEO API](https://dog.ceo/api/breeds/image/random)
-- 💾 Server functions for persisting favorite dog images
+- 💾 SQLite database for persisting favorite dog images
 - 🔒 Server-only code with proper security boundaries
 - 🎨 Styled with Tailwind CSS
 - ⚡ Built with Dioxus 0.7 fullstack framework
@@ -93,7 +94,8 @@ This starts an Axum server that:
 
 - Serves the frontend application
 - Handles server function requests at `/api/*` endpoints
-- Provides backend logic for saving dog images
+- Provides backend logic for saving and retrieving dog images
+- Creates and manages a SQLite database (`hotdog.db`) for persistence
 
 ## Architecture
 
@@ -105,16 +107,35 @@ HotDog uses Dioxus 0.7's fullstack capabilities to provide a seamless client-ser
 - **Server functions**: Backend logic marked with `#[post("/api/...")]` that only runs on the server
 - **Server-only code**: Utilities in `server_utils.rs` protected by `#[cfg(feature = "server")]`
 
+### SQLite Database
+
+The application uses SQLite for persistent storage of saved dog images. The database is managed through thread-local connections in [server_utils.rs](src/apis/server_utils.rs):
+
+- **Database file**: `hotdog.db` (created automatically on first run)
+- **Schema**:
+
+  ```sql
+  CREATE TABLE dogs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      url TEXT NOT NULL UNIQUE,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+  ```
+
+- **Thread safety**: Each thread maintains its own SQLite connection using `thread_local!`
+- **Security**: Uses prepared statements to prevent SQL injection
+
 ### Server Functions
 
 #### `save_dog` ([apis/save_dog.rs](src/apis/save_dog.rs))
 
-Server function that persists dog image URLs to storage:
+Server function that persists dog image URLs to the SQLite database:
 
 - **Endpoint**: `POST /api/save_dog`
 - **Input**: Dog image URL string
 - **Output**: Success or error
-- **Security**: Validates URLs before saving, server-only logging
+- **Security**: Validates URLs before saving, prevents duplicate entries, uses prepared statements
+- **Database**: Inserts into the `dogs` table with automatic timestamp
 
 Example usage from client code:
 
@@ -123,6 +144,27 @@ use crate::apis::save_dog;
 
 // Call server function from client
 save_dog(image_url).await?;
+```
+
+#### `get_saved_dogs` ([apis/get_saved_dogs.rs](src/apis/get_saved_dogs.rs))
+
+Server function that retrieves all saved dog images from the database:
+
+- **Endpoint**: `GET /api/get_saved_dogs`
+- **Input**: None
+- **Output**: `Vec<SavedDog>` with id, url, and created_at fields
+- **Ordering**: Returns dogs sorted by most recent first
+
+Example usage from client code:
+
+```rust
+use crate::apis::get_saved_dogs;
+
+// Retrieve all saved dogs
+let saved_dogs = get_saved_dogs().await?;
+for dog in saved_dogs {
+    println!("Dog {}: {} (saved at {})", dog.id, dog.url, dog.created_at);
+}
 ```
 
 ## Component Overview
