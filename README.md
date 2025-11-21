@@ -181,10 +181,11 @@ Displays the application title with emoji. Uses context to access the title stat
 
 The main feature component that:
 
-- Displays a dog image
+- Fetches and displays a random dog image on component mount
 - Provides "skip" and "save!" buttons
 - Fetches new random dog images from the Dog CEO API
 - Calls the `save_dog` server function when saving favorites
+- Automatically loads a fresh random image on page load to avoid duplicate save errors
 
 ## Building for Production
 

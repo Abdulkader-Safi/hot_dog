@@ -1,7 +1,18 @@
 mod apis;
 mod components;
 
-use components::App;
+use components::{App, DogView, Favorites, NavBar};
+use dioxus::prelude::*;
+
+#[derive(Routable, Clone, PartialEq)]
+#[rustfmt::skip]
+enum Route {
+    #[layout(NavBar)]
+    #[route("/")]
+    DogView,
+    #[route("/favorites")]
+    Favorites,
+}
 
 fn main() {
     // On client targets (web, desktop, mobile), launch normally

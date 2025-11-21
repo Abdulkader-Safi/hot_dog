@@ -10,8 +10,20 @@ struct DogApi {
 
 #[component]
 pub fn DogView() -> Element {
-    let mut img_src =
-        use_signal(|| "https://images.dog.ceo/breeds/pitbull/dog-3981540_1280.jpg".to_string());
+    let mut img_src = use_signal(|| String::new());
+
+    // Load a random dog image on component mount
+    use_effect(move || {
+        spawn(async move {
+            let response = reqwest::get("https://dog.ceo/api/breeds/image/random")
+                .await
+                .unwrap()
+                .json::<DogApi>()
+                .await
+                .unwrap();
+            img_src.set(response.message);
+        });
+    });
 
     // Skip button: load a new random dog image
     let skip = move |_| async move {

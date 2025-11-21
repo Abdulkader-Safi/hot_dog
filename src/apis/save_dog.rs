@@ -24,10 +24,13 @@ pub async fn save_dog(image: String) -> Result<(), ServerFnError> {
         server_only::log_server_event(&format!("Saving dog image: {}", image));
 
         // Insert the dog image URL into the database
-        server_only::DB.with(|db| {
+        let result = server_only::DB.with(|db| {
             db.borrow()
                 .execute("INSERT INTO dogs (url) VALUES (?1)", [&image])
                 .map_err(|e| {
+                    // Log the error for debugging
+                    server_only::log_server_event(&format!("Database error: {}", e));
+
                     // Handle duplicate URLs gracefully
                     if e.to_string().contains("UNIQUE constraint failed") {
                         ServerFnError::new("This dog image has already been saved")
@@ -35,7 +38,9 @@ pub async fn save_dog(image: String) -> Result<(), ServerFnError> {
                         ServerFnError::new(format!("Database error: {}", e))
                     }
                 })
-        })?;
+        });
+
+        result?;
 
         server_only::log_server_event("Dog image saved successfully to database");
     }
