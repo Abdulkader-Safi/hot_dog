@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct TitleState(pub String);
 
 #[component]
